@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MRX-VaultCore Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; max-width: 600px; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 4px;}
+        button { background: #0284c7; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0ea5e9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #475569; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="auth-section">
+    <h3>Unlock Vault</h3>
+    <input type="password" id="masterKey" placeholder="Enter Master Password">
+    <button onclick="unlockVault()">Unlock</button>
+</div>
+
+<div class="card" id="dashboard-section" style="display:none;">
+    <h3>MRX-Vault Management</h3>
+    <button onclick="lockVault()" style="background:#ef4444;">Lock Vault</button>
+    <button onclick="createBackup()" style="background:#10b981;">Create Encrypted Backup</button>
+    <button onclick="restoreBackup()" style="background:#f59e0b;">Restore from Backup</button>
+
+    <h4 style="margin-top:20px;">Add Credential</h4>
+    <input type="text" id="pTitle" placeholder="Title (e.g., GitHub)">
+    <input type="text" id="pUser" placeholder="Username">
+    <input type="text" id="pPass" placeholder="Password">
+    <button onclick="saveCredential()">Save Credential</button>
+
+    <h4>Stored Credentials</h4>
+    <table>
+        <thead><tr><th>Title</th><th>Username</th><th>Action</th></tr></thead>
+        <tbody id="credTable"></tbody>
+    </table>
+</div>
+
+<script>
+    async function unlockVault() {
+        let key = document.getElementById("masterKey").value;
+        let res = await fetch('/api/unlock', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({master_key: key})
+        });
+        let data = await res.json();
+        if(res.ok) {
+            document.getElementById("auth-section").style.display = "none";
+            document.getElementById("dashboard-section").style.display = "block";
+            loadCredentials();
+        } else {
+            alert(data.message);
+        }
+    }
+
+    async function lockVault() {
+        await fetch('/api/lock', {method: 'POST'});
+        location.reload();
+    }
+
+    async function loadCredentials() {
+        let res = await fetch('/api/credentials');
+        let result = await res.json();
+        if(res.ok) {
+            let tbody = document.getElementById("credTable");
+            tbody.innerHTML = "";
+            result.data.forEach(item => {
+                tbody.innerHTML += `<tr><td>${item.title}</td><td>${item.username}</td><td><button onclick="copyPass('${item.password}')">Copy (10s)</button></td></tr>`;
+            });
+        }
+    }
+
+    async function saveCredential() {
+        let title = document.getElementById("pTitle").value;
+        let username = document.getElementById("pUser").value;
+        let password = document.getElementById("pPass").value;
+
+        await fetch('/api/credentials', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({entry: {title, username, password}})
+        });
+        loadCredentials();
+    }
+
+    async function copyPass(pass) {
+        await navigator.clipboard.writeText(pass);
+        alert("Password copied! It will auto-clear in 10 seconds.");
+        setTimeout(async () => {
+            let current = await navigator.clipboard.readText();
+            if(current === pass) {
+                await navigator.clipboard.writeText("");
+            }
+        }, 10000);
+    }
+
+    async function createBackup() {
+        let res = await fetch('/api/backup', {method: 'POST'});
+        let data = await res.json();
+        alert(data.message);
+    }
+
+    async function restoreBackup() {
+        let res = await fetch('/api/restore', {method: 'POST'});
+        let data = await res.json();
+        alert(data.message);
+        loadCredentials();
+    }
+</script>
+
+</body>
+</html>
