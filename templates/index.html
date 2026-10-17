@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MRX-VaultCore Dashboard</title>
+    <title>MRX-Vault Dashboard</title>
     <style>
         body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; }
         .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; max-width: 600px; }
@@ -41,6 +41,8 @@
 </div>
 
 <script>
+    let activeTimers = {};
+
     async function unlockVault() {
         let key = document.getElementById("masterKey").value;
         let res = await fetch('/api/unlock', {
@@ -69,8 +71,13 @@
         if(res.ok) {
             let tbody = document.getElementById("credTable");
             tbody.innerHTML = "";
-            result.data.forEach(item => {
-                tbody.innerHTML += `<tr><td>${item.title}</td><td>${item.username}</td><td><button onclick="copyPass('${item.password}')">Copy (10s)</button></td></tr>`;
+            result.data.forEach((item, index) => {
+                let btnId = `copy-btn-${index}`;
+                tbody.innerHTML += `<tr>
+                    <td>${item.title}</td>
+                    <td>${item.username}</td>
+                    <td><button id="${btnId}" onclick="copyToClipboard('${item.password}', '${btnId}')">Copy (10s)</button></td>
+                </tr>`;
             });
         }
     }
@@ -88,15 +95,53 @@
         loadCredentials();
     }
 
-    async function copyPass(pass) {
-        await navigator.clipboard.writeText(pass);
-        alert("Password copied! It will auto-clear in 10 seconds.");
-        setTimeout(async () => {
-            let current = await navigator.clipboard.readText();
-            if(current === pass) {
-                await navigator.clipboard.writeText("");
-            }
-        }, 10000);
+    function copyToClipboard(passwordText, elementId) {
+        // যদি ইতিমধ্যে এই বাটনে কোনো টাইমার চলতে থাকে, তবে তা ক্লিয়ার করা
+        if (activeTimers[elementId]) {
+            clearInterval(activeTimers[elementId].interval);
+            clearTimeout(activeTimers[elementId].timeout);
+        }
+
+        navigator.clipboard.writeText(passwordText).then(() => {
+            const btn = document.getElementById(elementId);
+            const originalText = "Copy (10s)";
+            
+            let timeLeft = 10;
+            btn.innerText = `Copied! (${timeLeft}s)`;
+            btn.style.background = "#e11d48"; // কাউন্টডাউনের সময় লাল রঙের আকর্ষণীয় লুক
+            btn.disabled = true;
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    btn.innerText = `Copied! (${timeLeft}s)`;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000);
+
+            const timeout = setTimeout(async () => {
+                try {
+                    // ক্লিপবোর্ড সুরক্ষিত করতে ওভাররাইট করা
+                    await navigator.clipboard.writeText("MRX_VAULT_EXPIRED_DATA");
+                } catch (e) {
+                    console.log("Background clipboard restriction handled.");
+                }
+                
+                btn.innerText = originalText;
+                btn.style.background = "#0284c7"; // আগের রঙে ফিরিয়ে আনা
+                btn.disabled = false;
+                delete activeTimers[elementId];
+                console.log("Clipboard secured successfully.");
+            }, 10000);
+
+            // টাইমার রেফারেন্স সেভ করে রাখা
+            activeTimers[elementId] = { interval, timeout };
+
+        }).catch(err => {
+            console.error('Clipboard copy failed: ', err);
+            alert('Failed to copy to clipboard.');
+        });
     }
 
     async function createBackup() {
