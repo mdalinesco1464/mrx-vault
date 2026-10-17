@@ -11,22 +11,23 @@ session = SessionManager()
 def index():
     return render_template("index.html")
 
-@app.route("/api/unlock", methods=["POST"])
+@app.route('/api/unlock', methods=['POST'])
 def unlock_vault():
-    data = request.json
-    key = data.get("master_key")
-    if not key:
-        return jsonify({"status": "error", "message": "Master key required"}), 400
+    data = request.get_json()
+    master_key = data.get('master_key')
+    
+    if vault.verify_and_extract(master_key):
+        # SessionManager-এর সঠিক unlock মেথড ব্যবহার করা হলো
+        session.unlock(master_key)
+        return jsonify({"success": True})
+        
+    return jsonify({"success": False, "message": "Invalid Master Password!"}), 400
 
-    if vault.verify_and_extract(key):
-        session.unlock(key)
-        return jsonify({"status": "success", "message": "Vault unlocked successfully"})
-    return jsonify({"status": "error", "message": "Invalid Master Password"}), 401
-
-@app.route("/api/lock", methods=["POST"])
+@app.route('/api/lock', methods=['POST'])
 def lock_vault():
+    # SessionManager-এর সঠিক lock মেথড ব্যবহার করা হলো
     session.lock()
-    return jsonify({"status": "success", "message": "Vault locked"})
+    return jsonify({"success": True})
 
 @app.route("/api/credentials", methods=["GET", "POST"])
 def handle_credentials():

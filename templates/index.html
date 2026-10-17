@@ -219,7 +219,25 @@
 
 <script>
     let activeTimers = {};
-    let allCredentials = []; // গ্লোবাল অ্যারে যেখানে সব ডেটা স্টোর থাকবে
+    let allCredentials = [];
+
+    // পেজ লোড হওয়ার সময় চেক করা সেশন বা sessionStorage আছে কি না
+    window.onload = async function() {
+        let isUnlocked = sessionStorage.getItem("mrx_unlocked");
+        
+        if (isUnlocked === "true") {
+            let res = await fetch('/api/credentials');
+            if (res.ok) {
+                document.getElementById("auth-section").style.display = "none";
+                document.getElementById("dashboard-section").style.display = "block";
+                loadCredentials();
+                return;
+            }
+        }
+        // যদি আনলক না থাকে
+        document.getElementById("dashboard-section").style.display = "none";
+        document.getElementById("auth-section").style.display = "block";
+    };
 
     async function unlockVault() {
         let key = document.getElementById("masterKey").value;
@@ -234,29 +252,37 @@
         });
         let data = await res.json();
         if(res.ok) {
+            // ব্রাউজার সেশন স্টোরেজে ফ্ল্যাগ সেট করা (রিলোডে থাকবে, ট্যাব কাটলে ডিলিট হবে)
+            sessionStorage.setItem("mrx_unlocked", "true");
+            
+            document.getElementById("masterKey").value = "";
             document.getElementById("auth-section").style.display = "none";
             document.getElementById("dashboard-section").style.display = "block";
             loadCredentials();
         } else {
-            alert(data.message);
+            alert(data.message || "Invalid Password!");
         }
     }
 
     async function lockVault() {
         await fetch('/api/lock', {method: 'POST'});
-        location.reload();
+        sessionStorage.removeItem("mrx_unlocked"); // সেশন ক্লিয়ার করা
+        document.getElementById("dashboard-section").style.display = "none";
+        document.getElementById("auth-section").style.display = "block";
+        document.getElementById("masterKey").value = "";
     }
 
     async function loadCredentials() {
         let res = await fetch('/api/credentials');
         let result = await res.json();
         if(res.ok) {
-            allCredentials = result.data; // ডেটা সেভ করে রাখা
+            allCredentials = result.data;
             renderTable(allCredentials);
+        } else {
+            lockVault();
         }
     }
 
-    // টেবিল রেন্ডার করার ফাংশন
     function renderTable(dataArray) {
         let tbody = document.getElementById("credTable");
         tbody.innerHTML = "";
@@ -276,7 +302,6 @@
         });
     }
 
-    // ইনস্ট্যান্ট সার্চ ফিল্টার ফাংশন
     function filterCredentials() {
         let query = document.getElementById("searchInput").value.toLowerCase();
         let filtered = allCredentials.filter(item => 
@@ -296,17 +321,20 @@
             return;
         }
 
-        await fetch('/api/credentials', {
+        let res = await fetch('/api/credentials', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({entry: {title, username, password}})
         });
 
-        document.getElementById("pTitle").value = "";
-        document.getElementById("pUser").value = "";
-        document.getElementById("pPass").value = "";
-
-        loadCredentials();
+        if(res.ok) {
+            document.getElementById("pTitle").value = "";
+            document.getElementById("pUser").value = "";
+            document.getElementById("pPass").value = "";
+            loadCredentials();
+        } else {
+            alert("Failed to save credential.");
+        }
     }
 
     function copyToClipboard(passwordText, elementId) {
