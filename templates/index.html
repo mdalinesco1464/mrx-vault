@@ -4,47 +4,229 @@
     <meta charset="UTF-8">
     <title>MRX-Vault Dashboard</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; max-width: 600px; }
-        input, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 4px;}
-        button { background: #0284c7; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0ea5e9; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #475569; text-align: left; }
+        :root {
+            --bg-primary: #0b0f19;
+            --card-bg: #111827;
+            --accent-blue: #0284c7;
+            --accent-hover: #0369a1;
+            --danger: #e11d48;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #1f2937;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top, #1e293b, var--bg-primary));
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2, h3, h4 {
+            margin-top: 0;
+            color: #ffffff;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        .brand-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0 16px 0;
+            box-sizing: border-box;
+            background: #030712;
+            color: var(--text-main);
+            border: 1px solid #374151;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 6px 0;
+            background: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .action-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #be123c; }
+
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #059669; }
+
+        .btn-warning { background: var(--warning); color: #111827; }
+        .btn-warning:hover { background: #d97706; }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: var(--border-color);
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #030712;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        th:first-child { border-top-left-radius: 8px; }
+        th:last-child { border-top-right-radius: 8px; }
+
+        td button {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            width: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
-<div class="card" id="auth-section">
-    <h3>Unlock Vault</h3>
-    <input type="password" id="masterKey" placeholder="Enter Master Password">
-    <button onclick="unlockVault()">Unlock</button>
-</div>
+<div class="container">
+    <!-- Unlock Section -->
+    <div class="card" id="auth-section">
+        <div class="brand-title">🛡️ MRX-Vault</div>
+        <h3>Unlock Secure Vault</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Enter your master password to decrypt the local storage.</p>
+        <input type="password" id="masterKey" placeholder="Enter Master Password">
+        <button onclick="unlockVault()">Access Vault</button>
+    </div>
 
-<div class="card" id="dashboard-section" style="display:none;">
-    <h3>MRX-Vault Management</h3>
-    <button onclick="lockVault()" style="background:#ef4444;">Lock Vault</button>
-    <button onclick="createBackup()" style="background:#10b981;">Create Encrypted Backup</button>
-    <button onclick="restoreBackup()" style="background:#f59e0b;">Restore from Backup</button>
+    <!-- Dashboard Section -->
+    <div class="card" id="dashboard-section" style="display:none;">
+        <div class="brand-title">🛡️ MRX-Vault Dashboard</div>
+        
+        <div class="action-group">
+            <button class="btn-danger" onclick="lockVault()">Lock Vault</button>
+            <button class="btn-success" onclick="createBackup()">Backup</button>
+            <button class="btn-warning" onclick="restoreBackup()">Restore</button>
+        </div>
 
-    <h4 style="margin-top:20px;">Add Credential</h4>
-    <input type="text" id="pTitle" placeholder="Title (e.g., GitHub)">
-    <input type="text" id="pUser" placeholder="Username">
-    <input type="text" id="pPass" placeholder="Password">
-    <button onclick="saveCredential()">Save Credential</button>
+        <hr>
 
-    <h4>Stored Credentials</h4>
-    <table>
-        <thead><tr><th>Title</th><th>Username</th><th>Action</th></tr></thead>
-        <tbody id="credTable"></tbody>
-    </table>
+        <h4>Add New Credential</h4>
+        <input type="text" id="pTitle" placeholder="Title (e.g., GitHub, Gmail)">
+        <input type="text" id="pUser" placeholder="Username / Email">
+        <input type="password" id="pPass" placeholder="Password">
+        <button onclick="saveCredential()">Save to Vault</button>
+
+        <hr style="margin: 25px 0;">
+
+        <h4>Stored Credentials</h4>
+        <!-- ইনস্ট্যান্ট সার্চ ইনপুট ফিল্ড -->
+        <input type="text" id="searchInput" placeholder="🔍 Search credentials by title or username..." onkeyup="filterCredentials()">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Username</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="credTable">
+                <!-- Dynamic Content -->
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
     let activeTimers = {};
+    let allCredentials = []; // গ্লোবাল অ্যারে যেখানে সব ডেটা স্টোর থাকবে
 
     async function unlockVault() {
         let key = document.getElementById("masterKey").value;
+        if (!key) {
+            alert("Please enter master password!");
+            return;
+        }
         let res = await fetch('/api/unlock', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -69,17 +251,39 @@
         let res = await fetch('/api/credentials');
         let result = await res.json();
         if(res.ok) {
-            let tbody = document.getElementById("credTable");
-            tbody.innerHTML = "";
-            result.data.forEach((item, index) => {
-                let btnId = `copy-btn-${index}`;
-                tbody.innerHTML += `<tr>
-                    <td>${item.title}</td>
-                    <td>${item.username}</td>
-                    <td><button id="${btnId}" onclick="copyToClipboard('${item.password}', '${btnId}')">Copy (10s)</button></td>
-                </tr>`;
-            });
+            allCredentials = result.data; // ডেটা সেভ করে রাখা
+            renderTable(allCredentials);
         }
+    }
+
+    // টেবিল রেন্ডার করার ফাংশন
+    function renderTable(dataArray) {
+        let tbody = document.getElementById("credTable");
+        tbody.innerHTML = "";
+        
+        if (dataArray.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No credentials found.</td></tr>`;
+            return;
+        }
+
+        dataArray.forEach((item, index) => {
+            let btnId = `copy-btn-${index}`;
+            tbody.innerHTML += `<tr>
+                <td><strong>${item.title}</strong></td>
+                <td>${item.username}</td>
+                <td><button id="${btnId}" onclick="copyToClipboard('${item.password}', '${btnId}')">Copy (10s)</button></td>
+            </tr>`;
+        });
+    }
+
+    // ইনস্ট্যান্ট সার্চ ফিল্টার ফাংশন
+    function filterCredentials() {
+        let query = document.getElementById("searchInput").value.toLowerCase();
+        let filtered = allCredentials.filter(item => 
+            item.title.toLowerCase().includes(query) || 
+            item.username.toLowerCase().includes(query)
+        );
+        renderTable(filtered);
     }
 
     async function saveCredential() {
@@ -87,16 +291,25 @@
         let username = document.getElementById("pUser").value;
         let password = document.getElementById("pPass").value;
 
+        if (!title || !password) {
+            alert("Title and Password are required!");
+            return;
+        }
+
         await fetch('/api/credentials', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({entry: {title, username, password}})
         });
+
+        document.getElementById("pTitle").value = "";
+        document.getElementById("pUser").value = "";
+        document.getElementById("pPass").value = "";
+
         loadCredentials();
     }
 
     function copyToClipboard(passwordText, elementId) {
-        // যদি ইতিমধ্যে এই বাটনে কোনো টাইমার চলতে থাকে, তবে তা ক্লিয়ার করা
         if (activeTimers[elementId]) {
             clearInterval(activeTimers[elementId].interval);
             clearTimeout(activeTimers[elementId].timeout);
@@ -108,7 +321,7 @@
             
             let timeLeft = 10;
             btn.innerText = `Copied! (${timeLeft}s)`;
-            btn.style.background = "#e11d48"; // কাউন্টডাউনের সময় লাল রঙের আকর্ষণীয় লুক
+            btn.style.background = "#e11d48"; 
             btn.disabled = true;
 
             const interval = setInterval(() => {
@@ -122,20 +335,17 @@
 
             const timeout = setTimeout(async () => {
                 try {
-                    // ক্লিপবোর্ড সুরক্ষিত করতে ওভাররাইট করা
                     await navigator.clipboard.writeText("MRX_VAULT_EXPIRED_DATA");
                 } catch (e) {
                     console.log("Background clipboard restriction handled.");
                 }
                 
                 btn.innerText = originalText;
-                btn.style.background = "#0284c7"; // আগের রঙে ফিরিয়ে আনা
+                btn.style.background = "#0284c7"; 
                 btn.disabled = false;
                 delete activeTimers[elementId];
-                console.log("Clipboard secured successfully.");
             }, 10000);
 
-            // টাইমার রেফারেন্স সেভ করে রাখা
             activeTimers[elementId] = { interval, timeout };
 
         }).catch(err => {
