@@ -115,26 +115,40 @@ def ext_generate_credential():
         "emails": preferred_emails,
         "password": strong_pass
     })
-    preferred_emails = [
-        "younusalicmt08@gmail.com",
-        "mdabu7109@gmail.com",
-        "mdalinesco1464@gmail.com"
-    ]
 
 @app.route('/api/ext/save', methods=['POST'])
 def ext_save_credential():
-    """এক্সটেনশন থেকে সাইন-আপের পর ক্রেডেনশিয়াল সেভ করা"""
+    """এক্সটেনশন থেকে সাইন-আপ বা লগইনের পর ক্রেডেনশিয়াল ডুপ্লিকেট ছাড়া সেভ করা"""
     if not session.is_unlocked:
         return jsonify({"success": False, "message": "Vault is locked. Please unlock first."}), 403
         
     req_data = request.json
-    new_entry = {
-        "title": req_data.get('title'),
-        "username": req_data.get('username'),
-        "password": req_data.get('password')
-    }
-    
+    new_title = req_data.get('title')
+    new_user = req_data.get('username')
+    new_pass = req_data.get('password')
+
+    if not new_title or not new_pass:
+        return jsonify({"success": False, "message": "Invalid data received."}), 400
+
     creds = vault.read_data(session.master_key) or []
+    
+    # ১. চেক করা যে একই ডোমেন এবং ইউজারনেমের এন্ট্রি আগে থেকেই আছে কি না
+    for item in creds:
+        if item.get('title') == new_title and item.get('username') == new_user:
+            # যদি পাসওয়ার্ড পরিবর্তন হয়ে থাকে তবে আপডেট করে দেওয়া
+            if item.get('password') != new_pass:
+                item['password'] = new_pass
+                vault.save_vault(session.master_key, creds)
+                return jsonify({"success": True, "message": "Password updated in MRX-Vault!"})
+            # যদি পাসওয়ার্ডও একই থাকে তবে ডুপ্লিকেট না বানিয়ে ফেরত পাঠানো
+            return jsonify({"success": True, "message": "Credential already exists!"})
+
+    # ২. ডুপ্লিকেট না থাকলে নতুন এন্ট্রি যুক্ত করা
+    new_entry = {
+        "title": new_title,
+        "username": new_user,
+        "password": new_pass
+    }
     creds.append(new_entry)
     vault.save_vault(session.master_key, creds)
     
