@@ -2,27 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MRX-Vault Dashboard</title>
+    <!-- SweetAlert2 CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
     <style>
         :root {
-            --bg-primary: #0b0f19;
-            --card-bg: #111827;
+            --bg-primary: #07090e;
+            --card-bg: #0d1322;
             --accent-blue: #0284c7;
             --accent-hover: #0369a1;
-            --danger: #e11d48;
+            --accent-glow: rgba(56, 189, 248, 0.35);
+            --danger: #f43f5e;
             --success: #10b981;
             --warning: #f59e0b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #1f2937;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --border-color: #1e293b;
         }
+
+        * { scrollbar-width: thin; scrollbar-color: #1e293b transparent; }
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: radial-gradient(circle at top, #1e293b, var--bg-primary);
+            background: radial-gradient(circle at top, #1e293b, var(--bg-primary) 70%);
+            background-attachment: fixed;
             color: var(--text-main);
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -31,52 +38,63 @@
 
         .container {
             width: 100%;
-            max-width: 650px;
-            padding: 20px;
+            max-width: 820px;
         }
 
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
-            animation: fadeIn 0.4s ease-in-out;
+            animation: fadeIn 0.3s ease-in-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        h2, h3, h4 {
-            margin-top: 0;
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        h3, h4 {
+            margin: 0 0 12px 0;
             color: #ffffff;
             font-weight: 600;
-            letter-spacing: -0.025em;
+            font-size: 1rem;
         }
 
         .brand-title {
             text-align: center;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            font-size: 1.4rem;
+            margin-bottom: 16px;
             background: linear-gradient(to right, #38bdf8, #818cf8);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 12px;
         }
 
         input {
             width: 100%;
-            padding: 12px 16px;
-            margin: 8px 0 16px 0;
+            padding: 10px 14px;
             box-sizing: border-box;
             background: #030712;
             color: var(--text-main);
-            border: 1px solid #374151;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
         }
 
         input:focus {
@@ -86,84 +104,304 @@
         }
 
         button {
-            width: 100%;
-            padding: 12px 16px;
-            margin: 6px 0;
+            padding: 10px 14px;
             background: var(--accent-blue);
             color: #ffffff;
             border: none;
             border-radius: 8px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        button:hover {
-            background: var(--accent-hover);
-            transform: translateY(-1px);
-        }
+        button:hover { background: var(--accent-hover); }
 
         .action-group {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
+        .action-group button { width: 100%; }
+
         .btn-danger { background: var(--danger); }
-        .btn-danger:hover { background: #be123c; }
+        .btn-danger:hover { background: #e11d48; }
 
         .btn-success { background: var(--success); }
         .btn-success:hover { background: #059669; }
 
-        .btn-warning { background: var(--warning); color: #111827; }
+        .btn-warning { background: var(--warning); color: #0b0f19; }
         .btn-warning:hover { background: #d97706; }
 
         hr {
             border: 0;
             height: 1px;
             background: var(--border-color);
-            margin: 20px 0;
+            margin: 16px 0;
+        }
+
+        /* ---------- Section header with count badge ---------- */
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .section-head h4 { margin: 0; }
+
+        .count-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+            color: #7dd3fc;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        /* ---------- Search ---------- */
+        .search-wrap { position: relative; margin-bottom: 14px; }
+        .search-wrap svg {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-muted);
+            pointer-events: none;
+        }
+        .search-wrap input { padding-left: 38px; }
+
+        /* ---------- Premium data table ---------- */
+        .table-wrap {
+            max-height: 420px;
+            overflow-y: auto;
+            padding: 2px 4px 4px 0;
+            margin-right: -4px;
         }
 
         table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0;
-            margin-top: 15px;
+            border-spacing: 0 8px;
         }
 
-        th, td {
-            padding: 12px 14px;
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 10px 16px;
             text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.9rem;
-        }
-
-        th {
-            background: #030712;
+            background: #0d1322;
             color: var(--text-muted);
             text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+        thead th:last-child { text-align: right; }
+
+        tbody tr {
+            animation: rowIn 0.35s ease both;
+            transition: transform 0.2s ease;
         }
 
-        th:first-child { border-top-left-radius: 8px; }
-        th:last-child { border-top-right-radius: 8px; }
+        tbody td {
+            padding: 12px 16px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.55), rgba(15, 23, 42, 0.55));
+            border-top: 1px solid rgba(148, 163, 184, 0.08);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.04);
+            font-size: 0.86rem;
+            vertical-align: middle;
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
 
-        td button {
-            padding: 6px 12px;
-            font-size: 0.85rem;
+        tbody td:first-child {
+            border-left: 3px solid transparent;
+            border-radius: 12px 0 0 12px;
+        }
+        tbody td:last-child {
+            border-right: 1px solid rgba(148, 163, 184, 0.08);
+            border-radius: 0 12px 12px 0;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover { transform: translateY(-1px); }
+        tbody tr:hover td {
+            background: linear-gradient(180deg, rgba(30, 58, 95, 0.55), rgba(15, 23, 42, 0.7));
+            border-top-color: rgba(56, 189, 248, 0.35);
+            border-bottom-color: rgba(56, 189, 248, 0.2);
+            box-shadow: 0 8px 22px -12px var(--accent-glow);
+        }
+        tbody tr:hover td:first-child { border-left-color: #38bdf8; }
+
+        .cell-site {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .site-icon-wrap {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2));
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        tbody tr:hover .site-icon-wrap {
+            transform: rotate(-6deg) scale(1.08);
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
+        .site-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            object-fit: contain;
+            background: #fff;
+            padding: 2px;
+        }
+
+        .site-text { display: flex; flex-direction: column; min-width: 0; }
+        .site-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.92rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .site-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px 4px 5px;
+            border-radius: 999px;
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid var(--border-color);
+            color: #cbd5e1;
+            font-size: 0.8rem;
+            max-width: 100%;
+        }
+        .user-chip .avatar {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+        }
+        .user-chip span.txt {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .na { color: var(--text-muted); font-style: italic; font-size: 0.8rem; }
+
+        .pw-dots {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.7rem;
+            letter-spacing: 0.18em;
+            color: var(--text-muted);
+        }
+
+        /* Action buttons */
+        .row-btn {
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 12px;
+            font-size: 0.78rem;
+            border-radius: 9px;
+            margin-left: 6px;
             width: auto;
-            margin-right: 5px;
+        }
+        .row-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        .btn-copy {
+            background: rgba(2, 132, 199, 0.15);
+            color: #7dd3fc;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+        }
+        .btn-copy:hover {
+            background: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 0 14px var(--accent-glow);
+        }
+        .btn-copy.copied {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, 0.45);
+            cursor: default;
+            box-shadow: none;
+        }
+        .btn-copy.copied::after {
+            content: "";
+            position: absolute;
+            left: 0; bottom: 0;
+            height: 2px;
+            width: 100%;
+            background: var(--success);
+            transform-origin: left;
+            animation: drain 10s linear forwards;
+        }
+        @keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+        .btn-del {
+            background: rgba(244, 63, 94, 0.12);
+            color: #fda4af;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            padding: 7px 9px;
+        }
+        .btn-del:hover {
+            background: var(--danger);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
         }
 
         .empty-state {
             text-align: center;
             color: var(--text-muted);
-            padding: 20px;
+            padding: 36px 20px !important;
+            font-size: 0.88rem;
+            background: rgba(15, 23, 42, 0.3) !important;
+            border: 1px dashed var(--border-color) !important;
+            border-radius: 12px !important;
+        }
+        .empty-state .big { font-size: 1.8rem; display: block; margin-bottom: 8px; }
+
+        @media (max-width: 620px) {
+            .card { padding: 16px; }
+            thead th:nth-child(2), tbody td:nth-child(2) { display: none; }
+            .row-btn .lbl { display: none; }
+            .action-group, .add-grid { grid-template-columns: 1fr !important; }
         }
     </style>
 </head>
@@ -174,10 +412,10 @@
     <div class="card" id="auth-section">
         <div class="brand-title">🛡️ MRX-Vault</div>
         <h3>Unlock Secure Vault</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Enter your master password to decrypt the local storage.</p>
-        
-        <div style="position: relative; margin-bottom: 15px;">
-            <input type="password" id="masterKey" placeholder="Enter Master Password" style="width: 100%; padding-right: 40px; box-sizing: border-box;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Enter your master password to decrypt local secure storage.</p>
+
+        <div class="input-group">
+            <input type="password" id="masterKey" placeholder="Enter Master Password" style="padding-right: 38px;">
             <span onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none;" title="Show/Hide Password">👁️</span>
         </div>
 
@@ -187,9 +425,9 @@
     <!-- Dashboard Section -->
     <div class="card" id="dashboard-section" style="display:none;">
         <div class="brand-title">🛡️ MRX-Vault Dashboard</div>
-        
+
         <div class="action-group">
-            <button class="btn-danger" onclick="lockVault()">Lock Vault</button>
+            <button class="btn-danger" onclick="lockVault()">Lock</button>
             <button class="btn-success" onclick="createBackup()">Backup</button>
             <button class="btn-warning" onclick="restoreBackup()">Restore</button>
         </div>
@@ -197,38 +435,62 @@
         <hr>
 
         <h4>Add New Credential</h4>
-        <input type="text" id="pTitle" placeholder="Title (e.g., GitHub, Gmail)">
-        <input type="text" id="pUser" placeholder="Username / Email">
-        <input type="password" id="pPass" placeholder="Password">
-        <button onclick="saveCredential()">Save to Vault</button>
+        <div class="add-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <input type="text" id="pTitle" placeholder="Title (e.g. GitHub)">
+            <input type="text" id="pUser" placeholder="Username / Email">
+            <input type="password" id="pPass" placeholder="Password">
+        </div>
+        <button onclick="saveCredential()" style="width: 100%; margin-top: 4px;">Save to Vault</button>
 
-        <hr style="margin: 25px 0;">
+        <hr>
 
-        <h4>Stored Credentials</h4>
-        <input type="text" id="searchInput" placeholder="🔍 Search credentials by title or username..." onkeyup="filterCredentials()">
+        <div class="section-head">
+            <h4>Stored Credentials</h4>
+            <span class="count-badge" id="countBadge">0 items</span>
+        </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Username</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="credTable">
-                <!-- Dynamic Content -->
-            </tbody>
-        </table>
+        <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="text" id="searchInput" placeholder="Search credentials by title or username..." onkeyup="filterCredentials()">
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Username</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="credTable">
+                    <!-- Dynamic Content -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<!-- SweetAlert2 JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     let activeTimers = {};
     let allCredentials = [];
 
+    const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+    const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+    const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
     window.onload = async function() {
         let isUnlocked = sessionStorage.getItem("mrx_unlocked");
-        
+
         if (isUnlocked === "true") {
             let res = await fetch('/api/credentials');
             if (res.ok) {
@@ -245,23 +507,44 @@
     async function unlockVault() {
         let key = document.getElementById("masterKey").value;
         if (!key) {
-            alert("Please enter master password!");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Password',
+                text: 'Please enter your master password!',
+                background: '#0d1322',
+                color: '#f1f5f9',
+                confirmButtonColor: '#0284c7'
+            });
             return;
         }
+
         let res = await fetch('/api/unlock', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({master_key: key})
         });
         let data = await res.json();
+
         if(res.ok) {
             sessionStorage.setItem("mrx_unlocked", "true");
             document.getElementById("masterKey").value = "";
             document.getElementById("auth-section").style.display = "none";
             document.getElementById("dashboard-section").style.display = "block";
             loadCredentials();
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Vault Unlocked Successfully!'
+            });
         } else {
-            alert(data.message || "Invalid Password!");
+            Swal.fire({
+                icon: 'error',
+                title: 'Access Denied',
+                text: data.message || "Invalid Master Password!",
+                background: '#0d1322',
+                color: '#f1f5f9',
+                confirmButtonColor: '#f43f5e'
+            });
         }
     }
 
@@ -271,6 +554,11 @@
         document.getElementById("dashboard-section").style.display = "none";
         document.getElementById("auth-section").style.display = "block";
         document.getElementById("masterKey").value = "";
+
+        Toast.fire({
+            icon: 'info',
+            title: 'Vault Locked Successfully!'
+        });
     }
 
     async function loadCredentials() {
@@ -286,34 +574,57 @@
 
     function renderTable(dataArray) {
         let tbody = document.getElementById("credTable");
-        tbody.innerHTML = "";
-        
+        let badge = document.getElementById("countBadge");
+        badge.textContent = `${dataArray.length} ${dataArray.length === 1 ? 'item' : 'items'}`;
+
         if (dataArray.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No credentials found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="empty-state"><span class="big">🔐</span>No credentials found in vault.</td></tr>`;
             return;
         }
 
+        let html = "";
         dataArray.forEach((item, index) => {
             let btnId = `copy-btn-${index}`;
-            // মূল অ্যারে থেকে আসল ইনডেক্স খুঁজে বের করার ব্যবস্থা যাতে সার্চ করার পরও সঠিক আইটেম ডিলিট হয়
             let originalIndex = allCredentials.indexOf(item);
-            
-            tbody.innerHTML += `<tr>
-                <td><strong>${item.title}</strong></td>
-                <td>${item.username}</td>
+
+            let rawTitle = (item.title || '').trim();
+            let domain = rawTitle.includes('.') ? rawTitle : rawTitle + '.com';
+            let faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+
+            let title = escapeHtml(rawTitle);
+            let domainSafe = escapeHtml(domain.toLowerCase());
+            let userRaw = item.username || '';
+            let userHtml = userRaw
+                ? `<span class="user-chip"><span class="avatar">${escapeHtml(userRaw.charAt(0).toUpperCase())}</span><span class="txt">${escapeHtml(userRaw)}</span></span>`
+                : `<span class="na">N/A</span>`;
+
+            html += `<tr style="animation-delay:${Math.min(index * 45, 400)}ms">
                 <td>
-                    <button id="${btnId}" onclick="copyToClipboard('${item.password}', '${btnId}')">Copy (10s)</button>
-                    <button class="btn-danger" onclick="deleteCredential(${originalIndex})">Delete</button>
+                    <div class="cell-site">
+                        <div class="site-icon-wrap">
+                            <img src="${faviconUrl}" class="site-icon" alt="" onerror="this.src='https://cdn-icons-png.flaticon.com/512/281/281764.png'">
+                        </div>
+                        <div class="site-text">
+                            <span class="site-name">${title}</span>
+                            <span class="site-sub">${domainSafe}</span>
+                        </div>
+                    </div>
+                </td>
+                <td>${userHtml}<span class="pw-dots">••••••••••</span></td>
+                <td>
+                    <button id="${btnId}" class="row-btn btn-copy" onclick="copyToClipboard(${originalIndex}, '${btnId}')">${ICON_COPY}<span class="lbl">Copy</span></button>
+                    <button class="row-btn btn-del" title="Delete" onclick="deleteCredential(${originalIndex})">${ICON_TRASH}</button>
                 </td>
             </tr>`;
         });
+        tbody.innerHTML = html;
     }
 
     function filterCredentials() {
         let query = document.getElementById("searchInput").value.toLowerCase();
-        let filtered = allCredentials.filter(item => 
-            item.title.toLowerCase().includes(query) || 
-            item.username.toLowerCase().includes(query)
+        let filtered = allCredentials.filter(item =>
+            item.title.toLowerCase().includes(query) ||
+            (item.username && item.username.toLowerCase().includes(query))
         );
         renderTable(filtered);
     }
@@ -324,7 +635,14 @@
         let password = document.getElementById("pPass").value;
 
         if (!title || !password) {
-            alert("Title and Password are required!");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Details',
+                text: 'Title and Password are required!',
+                background: '#0d1322',
+                color: '#f1f5f9',
+                confirmButtonColor: '#0284c7'
+            });
             return;
         }
 
@@ -339,49 +657,87 @@
             document.getElementById("pUser").value = "";
             document.getElementById("pPass").value = "";
             loadCredentials();
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Credential saved securely!'
+            });
         } else {
-            alert("Failed to save credential.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to save credential.',
+                background: '#0d1322',
+                color: '#f1f5f9',
+                confirmButtonColor: '#f43f5e'
+            });
         }
     }
 
     async function deleteCredential(index) {
-        if (!confirm("Are you sure you want to delete this credential?")) {
-            return;
-        }
-
-        let res = await fetch('/api/credentials', {
-            method: 'DELETE',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({index: index})
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "This credential will be deleted from your vault!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f43f5e',
+            cancelButtonColor: '#1e293b',
+            confirmButtonText: 'Yes, delete it!',
+            background: '#0d1322',
+            color: '#f1f5f9'
         });
 
-        let data = await res.json();
-        if (res.ok) {
-            loadCredentials();
-        } else {
-            alert(data.message || "Failed to delete credential.");
+        if (result.isConfirmed) {
+            let res = await fetch('/api/credentials', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({index: index})
+            });
+
+            let data = await res.json();
+            if (res.ok) {
+                loadCredentials();
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Credential deleted successfully!'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed',
+                    text: data.message || "Failed to delete credential.",
+                    background: '#0d1322',
+                    color: '#f1f5f9'
+                });
+            }
         }
     }
 
-    function copyToClipboard(passwordText, elementId) {
+    // Password is looked up by index so it never gets written into the page markup.
+    function copyToClipboard(credIndex, elementId) {
+        const cred = allCredentials[credIndex];
+        if (!cred) return;
+
         if (activeTimers[elementId]) {
             clearInterval(activeTimers[elementId].interval);
             clearTimeout(activeTimers[elementId].timeout);
         }
 
-        navigator.clipboard.writeText(passwordText).then(() => {
+        navigator.clipboard.writeText(cred.password).then(() => {
             const btn = document.getElementById(elementId);
-            const originalText = "Copy (10s)";
-            
+            const resetHtml = `${ICON_COPY}<span class="lbl">Copy</span>`;
+
             let timeLeft = 10;
-            btn.innerText = `Copied! (${timeLeft}s)`;
-            btn.style.background = "#e11d48"; 
+            btn.innerHTML = `${ICON_CHECK}<span class="lbl">Copied ${timeLeft}s</span>`;
+            btn.classList.remove('copied');
+            void btn.offsetWidth; // restart the drain animation
+            btn.classList.add('copied');
             btn.disabled = true;
 
             const interval = setInterval(() => {
                 timeLeft--;
                 if (timeLeft > 0) {
-                    btn.innerText = `Copied! (${timeLeft}s)`;
+                    btn.innerHTML = `${ICON_CHECK}<span class="lbl">Copied ${timeLeft}s</span>`;
                 } else {
                     clearInterval(interval);
                 }
@@ -393,32 +749,73 @@
                 } catch (e) {
                     console.log("Background clipboard restriction handled.");
                 }
-                
-                btn.innerText = originalText;
-                btn.style.background = "#0284c7"; 
+
+                btn.innerHTML = resetHtml;
+                btn.classList.remove('copied');
                 btn.disabled = false;
                 delete activeTimers[elementId];
             }, 10000);
 
             activeTimers[elementId] = { interval, timeout };
 
+            Toast.fire({
+                icon: 'success',
+                title: 'Copied to clipboard (10s timer active)'
+            });
+
         }).catch(err => {
             console.error('Clipboard copy failed: ', err);
-            alert('Failed to copy to clipboard.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Clipboard Error',
+                text: 'Failed to copy to clipboard.',
+                background: '#0d1322',
+                color: '#f1f5f9'
+            });
         });
     }
 
     async function createBackup() {
         let res = await fetch('/api/backup', {method: 'POST'});
         let data = await res.json();
-        alert(data.message);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Backup Created',
+            text: data.message,
+            background: '#0d1322',
+            color: '#f1f5f9',
+            confirmButtonColor: '#0284c7'
+        });
     }
 
     async function restoreBackup() {
-        let res = await fetch('/api/restore', {method: 'POST'});
-        let data = await res.json();
-        alert(data.message);
-        loadCredentials();
+        const result = await Swal.fire({
+            title: 'Restore Vault?',
+            text: "This will overwrite current data with the last encrypted backup!",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#1e293b',
+            confirmButtonText: 'Yes, Restore',
+            background: '#0d1322',
+            color: '#f1f5f9'
+        });
+
+        if (result.isConfirmed) {
+            let res = await fetch('/api/restore', {method: 'POST'});
+            let data = await res.json();
+            loadCredentials();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Restored!',
+                text: data.message,
+                background: '#0d1322',
+                color: '#f1f5f9',
+                confirmButtonColor: '#0284c7'
+            });
+        }
     }
 
     function togglePasswordVisibility() {
@@ -429,6 +826,20 @@
             passwordInput.type = "password";
         }
     }
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        background: '#0d1322',
+        color: '#f1f5f9',
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
 </script>
 
 </body>
