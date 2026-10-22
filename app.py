@@ -41,13 +41,30 @@ def handle_credentials():
         req_data = request.json
         new_entry = req_data.get("entry")
         
+        if not new_entry or not new_entry.get("title") or not new_entry.get("password"):
+            return jsonify({"status": "error", "message": "Title and password are required"}), 400
+
         creds = vault.read_data(session.master_key)
         if creds is None:
             creds = []
-        creds.append(new_entry)
+        
+        new_title = new_entry.get("title", "").strip().lower()
+        new_user = new_entry.get("username", "").strip().lower()
+        
+        # ম্যানুয়াল ডুপ্লিকেট চেক ও আপডেট লজিক
+        updated = False
+        for item in creds:
+            if item.get("title", "").strip().lower() == new_title and item.get("username", "").strip().lower() == new_user:
+                item["password"] = new_entry.get("password")
+                updated = True
+                break
+        
+        if not updated:
+            creds.append(new_entry)
         
         vault.save_vault(session.master_key, creds)
-        return jsonify({"status": "success", "message": "Credential added successfully"})
+        message = "Credential updated successfully" if updated else "Credential added successfully"
+        return jsonify({"status": "success", "message": message})
 
     if request.method == "DELETE":
         req_data = request.json
