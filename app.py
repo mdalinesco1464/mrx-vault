@@ -173,7 +173,26 @@ def ext_get_credential():
             })
             
     return jsonify({"success": False, "message": "No credential found for this site."})
+@app.route('/api/ext/match', methods=['POST'])
+def ext_match_credential():
+    """ডোমেইন অনুযায়ী ভল্ট থেকে পাসওয়ার্ড ও ইউজারনেম খুঁজে বের করা"""
+    if not session.is_unlocked:
+        return jsonify({"success": False, "message": "Vault locked"}), 403
 
+    domain = request.json.get('domain', '').lower()
+    creds = vault.read_data(session.master_key) or []
+
+    # ডোমেইন নাম ম্যাচ করানো (যেমন: example.com)
+    matched = []
+    for item in creds:
+        title = item.get('title', '').lower()
+        if domain in title or title in domain:
+            matched.append(item)
+
+    if matched:
+        return jsonify({"success": True, "found": True, "credentials": matched})
+    else:
+        return jsonify({"success": True, "found": False})
 
 
 if __name__ == "__main__":
