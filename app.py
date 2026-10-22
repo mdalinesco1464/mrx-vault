@@ -28,6 +28,7 @@ def lock_vault():
     session.lock()
     return jsonify({"success": True})
 
+    
 @app.route("/api/credentials", methods=["GET", "POST", "DELETE"])
 def handle_credentials():
     if not session.is_unlocked:
@@ -51,20 +52,17 @@ def handle_credentials():
         new_title = new_entry.get("title", "").strip().lower()
         new_user = new_entry.get("username", "").strip().lower()
         
-        # ম্যানুয়াল ডুপ্লিকেট চেক ও আপডেট লজিক
-        updated = False
+        # ডুপ্লিকেট চেক ও রেস্ট্রিক্ট করার লজিক
         for item in creds:
             if item.get("title", "").strip().lower() == new_title and item.get("username", "").strip().lower() == new_user:
-                item["password"] = new_entry.get("password")
-                updated = True
-                break
+                return jsonify({
+                    "status": "error", 
+                    "message": "Duplicate Entry! This title and username already exist in your vault."
+                }), 400
         
-        if not updated:
-            creds.append(new_entry)
-        
+        creds.append(new_entry)
         vault.save_vault(session.master_key, creds)
-        message = "Credential updated successfully" if updated else "Credential added successfully"
-        return jsonify({"status": "success", "message": message})
+        return jsonify({"status": "success", "message": "Credential added successfully"})
 
     if request.method == "DELETE":
         req_data = request.json
@@ -77,7 +75,6 @@ def handle_credentials():
             return jsonify({"status": "success", "message": "Credential deleted successfully"})
         
         return jsonify({"status": "error", "message": "Invalid index or credential not found"}), 400
-
 @app.route("/api/backup", methods=["POST"])
 def create_backup():
     if vault.create_backup():

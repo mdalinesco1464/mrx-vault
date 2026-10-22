@@ -652,7 +652,9 @@
             body: JSON.stringify({entry: {title, username, password}})
         });
 
-        if(res.ok) {
+        let data = await res.json();
+
+        if (res.ok) {
             document.getElementById("pTitle").value = "";
             document.getElementById("pUser").value = "";
             document.getElementById("pPass").value = "";
@@ -663,17 +665,17 @@
                 title: 'Credential saved securely!'
             });
         } else {
+            // ব্যাকএন্ড থেকে আসা ডুপ্লিকেট বা রেস্ট্রিকশন মেসেজটি এখানে পপআপে দেখাবে
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: 'Failed to save credential.',
+                title: 'Action Restricted',
+                text: data.message || 'Failed to save credential.',
                 background: '#0d1322',
                 color: '#f1f5f9',
                 confirmButtonColor: '#f43f5e'
             });
         }
     }
-
     async function deleteCredential(index) {
         const result = await Swal.fire({
             title: 'Are you sure?',
