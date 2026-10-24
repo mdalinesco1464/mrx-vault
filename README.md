@@ -19,11 +19,13 @@ A lightweight, self-hosted, zero-trust local password manager built with **Pytho
 mkdir -p vault
 cd vault
 ```
--**For Windows 
+## For Windows 
 ```bash
 python -m venv .venv
 .venv\Scripts\Activate
--**For Linux
+```
+
+##For Linux
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
