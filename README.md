@@ -25,7 +25,7 @@ python -m venv .venv
 .venv\Scripts\Activate
 ```
 
-##For Linux
+## For Linux
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
