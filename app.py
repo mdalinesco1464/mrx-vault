@@ -3,10 +3,14 @@ from flask import Flask, render_template, request, jsonify
 from core.vault_engine import VaultEngine
 from core.session_manager import SessionManager
 import random, string
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 vault = VaultEngine()
 session = SessionManager()
+
+# .env ফাইল থেকে ভ্যারিয়েবল লোড নিশ্চিত করার জন্য
+load_dotenv()
 
 @app.route("/")
 def index():
@@ -28,7 +32,7 @@ def lock_vault():
     session.lock()
     return jsonify({"success": True})
 
-    
+
 @app.route("/api/credentials", methods=["GET", "POST", "DELETE"])
 def handle_credentials():
     if not session.is_unlocked:
@@ -92,22 +96,19 @@ def restore_backup():
 
 @app.route('/api/ext/generate', methods=['GET'])
 def ext_generate_credential():
-    """নির্দিষ্ট পলিসি অনুযায়ী স্ট্রং পাসওয়ার্ড এবং প্রি-সেট ইমেইল রিটার্ন করবে"""
+    """নির্দিষ্ট পলিসি অনুযায়ী স্ট্রং পাসওয়ার্ড এবং প্রি-সেট ইমেইল রিটার্ন করবে"""
     
+    # .env ফাইল থেকে PREFERRED_EMAILS রিড করা (কমা দিয়ে আলাদা করা ইমেইল)
+    raw_emails = os.getenv("PREFERRED_EMAILS", "")
+    preferred_emails = [email.strip() for email in raw_emails.split(",") if email.strip()]
     
-    preferred_emails = [
-        "younusalicmt08@gmail.com",
-        "mdabu7109@gmail.com",
-        "mdalinesco1464@gmail.com"
-    ]
-    
-    # পাসওয়ার্ড পলিসি নিশ্চিত করার জন্য ক্যারেক্টার সেট
+    # পাসওয়ার্ড পলিসি নিশ্চিত করার জন্য ক্যারেক্টার সেট
     lower = string.ascii_lowercase
     upper = string.ascii_uppercase
     digits = string.digits
     special = "!@#$%^&*"
     
-    # বাধ্যতামূলকভাবে প্রতি ক্যাটাগরি থেকে অন্তত একটি করে ক্যারেক্টার নেওয়া
+    # বাধ্যতামূলকভাবে প্রতি ক্যাটাগরি থেকে অন্তত একটি করে ক্যারেক্টার নেওয়া
     password_chars = [
         random.choice(lower),
         random.choice(upper),
@@ -115,12 +116,12 @@ def ext_generate_credential():
         random.choice(special)
     ]
     
-    # বাকি অক্ষরগুলো মিলিয়ে মোট দৈর্ঘ্য ১২ বা তার বেশি করা (কমপক্ষে ৮)
+    # বাকি অক্ষরগুলো মিলিয়ে মোট দৈর্ঘ্য ১৪ করা
     all_chars = lower + upper + digits + special
-    for _ in range(10): # মোট দৈর্ঘ্য ১৪ হবে
+    for _ in range(10): 
         password_chars.append(random.choice(all_chars))
         
-    # পাসওয়ার্ডের অক্ষরগুলোকে র্যান্ডমভাবে এলোমেলো করা (Shuffle)
+    # পাসওয়ার্ডের অক্ষরগুলোকে র্যান্ডমভাবে এলোমেলো করা (Shuffle)
     random.shuffle(password_chars)
     strong_pass = ''.join(password_chars)
     
